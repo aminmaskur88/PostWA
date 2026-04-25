@@ -1,0 +1,26 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Chrome Profile / Session data (PENTING: Jangan di-upload karena berisi login WA)
+chrome_profile/
+
+# Database Lokal
+channels.txt
+channel_tujuan.txt
+
+# Media / Screenshot Error
+*.png
+*.jpg
+*.jpeg
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Gemini/Agent data
+.gemini/

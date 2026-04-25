@@ -1,0 +1,3 @@
+/data/data/com.termux/files/home/TranslateKomikGemini/hasil/Indonesian/Ajal_di_Balik_Jendela.jpg
+/data/data/com.termux/files/home/TranslateKomikGemini/hasil/Indonesian/Akting_Waras.jpg
+/data/data/com.termux/files/home/TranslateKomikGemini/hasil/Indonesian/Asing_di_Balik_Cermin.jpg
