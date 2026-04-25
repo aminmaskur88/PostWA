@@ -2,6 +2,7 @@ import os
 import time
 import json
 import sys
+import random
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -305,6 +306,9 @@ if __name__ == "__main__":
     all_files = get_files_with_captions(folder_path)
     # Filter yang belum diupload
     pending_files = [f for f in all_files if f['path'] not in history]
+    
+    # Mengacak urutan file agar tidak berurutan abjad
+    random.shuffle(pending_files)
 
     if not pending_files:
         print("\n[INFO] Semua file di folder ini sudah pernah diupload sebelumnya.")
