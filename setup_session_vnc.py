@@ -36,6 +36,13 @@ def setup_whatsapp_session():
         print("Membuka WhatsApp Web...")
         driver.get("https://web.whatsapp.com")
         
+        print("\n[INFO] Menunggu WhatsApp Web termuat sempurna (Timeout 5 menit)...")
+        try:
+            wait = WebDriverWait(driver, 300)
+            wait.until(EC.presence_of_element_located((By.XPATH, '//canvas | //div[@id="pane-side"]')))
+        except:
+            pass
+
         print("\n=============================================")
         print("Browser SEHARUSNYA sudah muncul di VNC.")
         print("Silakan SCAN QR Code.")

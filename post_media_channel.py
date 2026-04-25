@@ -50,8 +50,16 @@ def post_media_to_channel(channel_name, file_path, caption, headless=False):
         wait = WebDriverWait(driver, 30)
         
         driver.get("https://web.whatsapp.com/")
-        print("Menunggu WhatsApp Web terbuka...")
+        print("Menunggu WhatsApp Web terbuka (Sabar, timeout 5 menit)...")
 
+        # Tunggu sampai elemen dashboard utama muncul
+        wait_long = WebDriverWait(driver, 300)
+        try:
+            wait_long.until(EC.presence_of_element_located((By.XPATH, '//div[@id="pane-side"] | //button[@aria-label="Saluran"] | //span[@data-icon="newsletter-outline"]')))
+            print("WhatsApp Web siap.")
+        except:
+            print("[PERINGATAN] Loading sangat lama, mencoba tetap melanjutkan...")
+        
         # 1. Klik ikon Channel di sidebar
         xpaths = [
             '//button[@aria-label="Saluran"]',
@@ -159,12 +167,36 @@ def post_media_to_channel(channel_name, file_path, caption, headless=False):
         print("Menunggu preview media (10 detik)...")
         time.sleep(10) 
 
-        print("Mengetik caption...")
-        active_element = driver.switch_to.active_element
-        active_element.send_keys(caption)
-        time.sleep(2)
-        print("Mengirim dengan tombol ENTER...")
-        active_element.send_keys(Keys.ENTER)
+        print("Mengetik dan memasang caption...")
+        try:
+            active_element = driver.switch_to.active_element
+            
+            # Pisahkan kalimat pertama dan sisanya
+            parts = caption.split('. ', 1)
+            first_sentence = parts[0] + ('.' if len(parts) > 1 else '')
+            remaining_text = parts[1] if len(parts) > 1 else ""
+
+            # 1. Tulis kalimat pertama secara normal
+            print(f"Mengetik: {first_sentence[:50]}...")
+            active_element.send_keys(first_sentence)
+            time.sleep(2)
+
+            # 2. Paste sisanya menggunakan JS jika ada
+            if remaining_text:
+                print("Menempelkan sisa teks (Paste mode)...")
+                driver.execute_script("""
+                    var target = arguments[0];
+                    target.focus();
+                    document.execCommand('insertText', false, ' ' + arguments[1]);
+                """, active_element, remaining_text)
+            
+            print("Menunggu 5 detik agar sistem memproses teks...")
+            time.sleep(5)
+            
+            print("Mengirim dengan tombol ENTER...")
+            active_element.send_keys(Keys.ENTER)
+        except Exception as e:
+            print(f"Gagal memasang caption: {e}")
         
         wait_final = WebDriverWait(driver, 60)
         print("Mengirim... Menunggu panel preview tertutup...")
@@ -207,15 +239,21 @@ def get_files_with_captions(root_path):
                 video_file = os.path.join(item_path, media_files[0])
                 meta_file = os.path.join(item_path, "post_meta.json")
                 caption = ""
+                
+                # Gunakan summary dari json jika ada
                 if os.path.exists(meta_file):
                     try:
                         with open(meta_file, 'r') as f:
                             meta_data = json.load(f)
-                            caption = meta_data.get("post_title", "")
-                    except: pass
+                            caption = meta_data.get("summary", "").strip()
+                    except:
+                        pass
                 
+                # Fallback ke nama file jika summary kosong/tidak ada
                 if not caption:
-                    caption = os.path.splitext(os.path.basename(video_file))[0].replace('_', ' ')
+                    nama_file = os.path.basename(video_file)
+                    nama_tanpa_ext = os.path.splitext(nama_file)[0]
+                    caption = nama_tanpa_ext.replace('_', ' ')
                 
                 results.append({"path": video_file, "caption": caption, "display": f"{item} ({os.path.basename(video_file)})"})
         else:

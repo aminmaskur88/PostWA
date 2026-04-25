@@ -1,3 +1,6 @@
 /data/data/com.termux/files/home/TranslateKomikGemini/hasil/Indonesian/Ajal_di_Balik_Jendela.jpg
 /data/data/com.termux/files/home/TranslateKomikGemini/hasil/Indonesian/Akting_Waras.jpg
 /data/data/com.termux/files/home/TranslateKomikGemini/hasil/Indonesian/Asing_di_Balik_Cermin.jpg
+/storage/emulated/0/ProjectKURKUR/AminMaskurW/anak-dan-gagak-persahabatan-tak-terduga/anak-dan-gagak-persahabatan-tak-terduga.mp4
+/storage/emulated/0/ProjectKURKUR/AminMaskurW/animasi-pengangkatan-amandel/animasi-pengangkatan-amandel.mp4
+/storage/emulated/0/ProjectKURKUR/AminMaskurW/anjing-gembala-terlatih-atur-ternak/anjing-gembala-terlatih-atur-ternak.mp4
