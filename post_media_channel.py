@@ -3,6 +3,7 @@ import time
 import json
 import sys
 import random
+import subprocess
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -12,6 +13,14 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
 HISTORY_FILE = "uploaded_history_wa.txt"
+
+def check_internet():
+    try:
+        # Ping Google DNS
+        subprocess.check_output(["ping", "-c", "1", "8.8.8.8"], timeout=5, stderr=subprocess.STDOUT)
+        return True
+    except:
+        return False
 
 def load_history():
     if os.path.exists(HISTORY_FILE):
@@ -241,12 +250,14 @@ def get_files_with_captions(root_path):
                 meta_file = os.path.join(item_path, "post_meta.json")
                 caption = ""
                 
-                # Gunakan summary dari json jika ada
+                # Gunakan summary atau post_title dari json jika ada
                 if os.path.exists(meta_file):
                     try:
                         with open(meta_file, 'r') as f:
                             meta_data = json.load(f)
                             caption = meta_data.get("summary", "").strip()
+                            if not caption:
+                                caption = meta_data.get("post_title", "").strip()
                     except:
                         pass
                 
@@ -254,12 +265,12 @@ def get_files_with_captions(root_path):
                 if not caption:
                     nama_file = os.path.basename(video_file)
                     nama_tanpa_ext = os.path.splitext(nama_file)[0]
-                    caption = nama_tanpa_ext.replace('_', ' ')
+                    caption = nama_tanpa_ext.replace('_', ' ').replace('-', ' ')
                 
                 results.append({"path": video_file, "caption": caption, "display": f"{item} ({os.path.basename(video_file)})"})
         else:
             if item.lower().endswith(('.mp4', '.jpg', '.jpeg', '.png')):
-                caption = os.path.splitext(item)[0].replace('_', ' ')
+                caption = os.path.splitext(item)[0].replace('_', ' ').replace('-', ' ')
                 results.append({"path": item_path, "caption": caption, "display": item})
     return results
 
@@ -328,10 +339,26 @@ if __name__ == "__main__":
             if i > 0:
                 countdown_timer(interval)
             
-            success = post_media_to_channel(target_ch, f['path'], f['caption'], headless=is_headless)
-            if not success:
-                print(f"[FAILED] Gagal mengupload {f['path']}. Berhenti.")
-                break
+            fail_count = 0
+            while True:
+                success = post_media_to_channel(target_ch, f['path'], f['caption'], headless=is_headless)
+                if success:
+                    break
+                else:
+                    if not check_internet():
+                        print(f"\n[ERR] Internet terputus saat upload {os.path.basename(f['path'])}. Menunggu koneksi...")
+                        while not check_internet():
+                            time.sleep(10)
+                        print("[OK] Internet kembali. Mencoba ulang upload ini...")
+                        continue
+                    else:
+                        fail_count += 1
+                        if fail_count >= 5:
+                            print(f"\n[CRITICAL] Gagal 5 kali (bukan internet) pada {os.path.basename(f['path'])}. Berhenti.")
+                            sys.exit(1)
+                        print(f"\n[RETRY] Gagal ({fail_count}/5). Mencoba ulang dalam {interval} menit...")
+                        countdown_timer(interval)
+                        
         print("\n[FINISH] Semua file berhasil diproses.")
     else:
         # Mode satuan seperti biasa
@@ -342,6 +369,25 @@ if __name__ == "__main__":
         f_choice = input(f"Pilih nomor file (1-{len(pending_files)}) [Default: 1]: ").strip()
         f_idx = int(f_choice) - 1 if f_choice.isdigit() and 0 < int(f_choice) <= len(pending_files) else 0
         
-        print(f"\nTarget: {target_ch}\nFile  : {pending_files[f_idx]['path']}")
+        f = pending_files[f_idx]
+        print(f"\nTarget: {target_ch}\nFile  : {f['path']}")
         if input("Lanjutkan? (y/n): ").lower() == 'y':
-            post_media_to_channel(target_ch, pending_files[f_idx]['path'], pending_files[f_idx]['caption'], headless=is_headless)
+            fail_count = 0
+            while True:
+                success = post_media_to_channel(target_ch, f['path'], f['caption'], headless=is_headless)
+                if success:
+                    break
+                else:
+                    if not check_internet():
+                        print("\n[ERR] Internet terputus. Menunggu koneksi...")
+                        while not check_internet():
+                            time.sleep(10)
+                        print("[OK] Internet kembali. Mencoba ulang...")
+                        continue
+                    else:
+                        fail_count += 1
+                        if fail_count >= 5:
+                            print("\n[CRITICAL] Gagal 5 kali. Berhenti.")
+                            break
+                        print(f"\n[RETRY] Gagal ({fail_count}/5). Mencoba lagi...")
+                        time.sleep(10) # Jeda singkat untuk mode manual
