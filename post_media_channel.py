@@ -122,11 +122,11 @@ def post_media_to_channel(channel_name, file_path, caption, headless=False):
         print(f"Mencari Channel '{channel_name}'...")
         clean_name = channel_name.replace(".", "").strip()
         channel_xpath = f'//span[contains(text(), "{clean_name}")]'
-        target_channel = wait.until(EC.element_to_be_clickable((By.XPATH, channel_xpath)))
+        target_channel = wait_long.until(EC.element_to_be_clickable((By.XPATH, channel_xpath)))
         driver.execute_script("arguments[0].scrollIntoView();", target_channel)
         target_channel.click()
         
-        wait.until(EC.presence_of_element_located((By.XPATH, f'//*[@id="main"]//header//span[contains(text(), "{clean_name}")]')))
+        wait_long.until(EC.presence_of_element_located((By.XPATH, f'//*[@id="main"]//header//span[contains(text(), "{clean_name}")]')))
         time.sleep(2)
 
         # 3. Inject JS Interceptor & Buka Menu Lampirkan
